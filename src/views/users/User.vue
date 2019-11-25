@@ -31,7 +31,7 @@
             <el-switch v-model="scope.row.mg_state" @change="switchClick(scope.row)"></el-switch>
           </template>
         </el-table-column>
-        <el-table-column label="操作">
+        <el-table-column label="操作" width="200">
           <template slot-scope="scope">
             <el-button
               type="primary"
@@ -47,7 +47,12 @@
               @click="deleteClick(scope.row.id)"
             ></el-button>
             <el-tooltip effect="dark" content="角色分配" placement="top" :enterable="false">
-              <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
+              <el-button
+                type="warning"
+                icon="el-icon-setting"
+                size="mini"
+                @click="rolesClick(scope.row)"
+              ></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -113,6 +118,29 @@
         <el-button type="primary" @click="editOkClick">确 定</el-button>
       </span>
     </el-dialog>
+
+    <!-- 角色分配 -->
+    <el-dialog title="提示" :visible.sync="RolesdialogVisible" width="50%" @close='setRoleDialogClosed'>
+      <div>
+        <p>当前的用户：{{rolesInfo.username}}</p>
+        <p>当前的角色：{{rolesInfo.role_name}}</p>
+        <p>
+          分配角色：
+          <el-select v-model="rolesListStr" placeholder="请选择">
+            <el-option
+              v-for="item in rolesList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </p>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="RolesdialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="saveRoleInfo">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -148,6 +176,7 @@ export default {
       /* 显示 */
       dialogVisible: false,
       editVisible: false,
+      RolesdialogVisible: false,
       /* 添加 */
       addForm: {
         username: "",
@@ -186,7 +215,12 @@ export default {
           { required: true, message: "请输手机号", trigger: "blur" },
           { validator: checkMobile, trigger: "blur" }
         ]
-      }
+      },
+      /* 角色信息 */
+      rolesInfo: {},
+      /* 所有角色 */
+      rolesList: [],
+      rolesListStr: ""
     };
   },
   created() {
@@ -287,15 +321,58 @@ export default {
         })
       );
       if (res !== "confirm") {
-        return 
+        return;
       }
 
       this.$http.delete("users/" + id);
       this.$message({
-          type: "success",
-          message: "删除成功"
-        });
+        type: "success",
+        message: "删除成功"
+      });
       this.getUserList();
+    },
+    async rolesClick(roles) {
+      this.rolesInfo = roles;
+      const { data: res } = await this.$http.get("roles");
+      if (res.meta.status !== 200) {
+        return this.$message({
+          message: "获取失败",
+          type: "info"
+        });
+      }
+      this.rolesList = res.data;
+      console.log(this.rolesList);
+
+      this.RolesdialogVisible = true;
+    },
+    /* 修改角色 */
+    async saveRoleInfo() {
+      if (!this.rolesListStr) {
+        return this.$message({
+          type: "error",
+          message: "请选择要分配的角色"
+        });
+      }
+      const { data: res } = await this.$http.put(
+        `users/${this.rolesInfo.id}/role`,{rid:this.rolesListStr}
+      );
+      if (res.meta.status !== 200) {
+        return this.$message({
+          type: "error",
+          message: "修改失败！"
+        });
+      }
+      this.$message({
+        type: "success",
+        message: "修改成功！"
+      });
+      this.getUserList()
+      this.RolesdialogVisible=false
+    },
+    /* 监听修改角色是否关闭 */
+    setRoleDialogClosed(){
+      this.rolesInfo={}
+      this.rolesListStr=''
     }
   }
 };
