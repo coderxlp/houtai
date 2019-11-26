@@ -10,3 +10,12 @@ html,body,#app{
 .el-card{
   box-shadow:0 0 5px rgba(141, 140, 140, 0.3) !important;
 }
+.el-steps{
+  margin: 15px 0;
+}
+.el-step__title{
+  font-size: 13px;
+}
+.ql-editor{
+  min-height: 300px;
+}

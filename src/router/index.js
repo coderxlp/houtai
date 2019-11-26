@@ -32,10 +32,18 @@ const routes = [{
     }, {
       path: '/categories',
       component: () => import('@/views/goods/Cate')
-    }, {
+    },{
       path: '/params',
       component: () => import('@/views/goods/Params')
-    }]
+    },{
+      path: '/goods',
+      component: () => import('@/views/goods/List')
+    },{
+      path: '/goods/add',
+      component: () => import('@/views/goods/add')
+    }
+
+  ]
   }
 ]
 
